@@ -1,0 +1,8 @@
+train
+test
+
+notebooks/.ipynb_checkpoints
+notebooks/lib/__pycache__
+notebooks/mlruns
+
+*~
