@@ -1,5 +1,3 @@
-
-
 def cuda_to_numpy(tensor):
     """Converts a cuda tensor to a numpy array in place
     Positional argument:
