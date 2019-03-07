@@ -13,7 +13,10 @@ import h5py
 
 from torch import optim
 
+import random
+
 from torch.utils.data import DataLoader
+
 
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
@@ -40,17 +43,17 @@ class CNN(nn.Module):
         self.maxpool = nn.MaxPool1d(kernel_size=2, stride=2)     
         
         self.dropout2d = nn.Dropout2d(p=0.5)
-        self.dropout = nn.Dropout(p=0.3)
+        self.dropout = nn.Dropout(p=0.5)
     def forward(self, x):
-        x = self.conv1(x.unsqueeze(1))
+        x = self.dropout2d(self.conv1(x.unsqueeze(1)))
         x = F.relu(self.batchnorm32(x))
         x = self.maxpool(x)
         
-        x = self.conv2(x)
+        x = self.dropout2d(self.conv2(x))
         x = F.relu(self.batchnorm64(x))
         x = self.maxpool(x)
         
-        x = self.conv3(x)
+        x = self.dropout2d(self.conv3(x))
         x = F.relu(self.batchnorm128(x))
         x = self.maxpool(x)
         
@@ -82,19 +85,25 @@ def parse_args():
 	return args
     
 def split_trainset(train_val_data, train_val_labels, ratio):
-	"""Split train data into train and validation set
+    """Split train data into train and validation set
     with given ratio"""
-	train_ratio = ratio
+    data = list(zip(train_val_data, train_val_labels))
     
-	trainsize = int(len(train_val_data) * train_ratio)
+    random.shuffle(data)
     
-	trainset = train_val_data[:trainsize]
-	trainlabels = train_val_labels[:trainsize]
+    train_val_data, train_val_labels = list(zip(*data))
+	
+    train_ratio = ratio
     
-	valset = train_val_data[trainsize:]
-	valabels = train_val_labels[trainsize:]
+    trainsize = int(len(train_val_data) * train_ratio)
     
-	return (trainset, trainlabels), (valset, valabels)
+    trainset = train_val_data[:trainsize]
+    trainlabels = train_val_labels[:trainsize]
+    
+    valset = train_val_data[trainsize:]
+    valabels = train_val_labels[trainsize:]
+    
+    return (trainset, trainlabels), (valset, valabels)
 
 def parallelize(model):
     """
@@ -114,14 +123,14 @@ def run(epochs, lr):
 
     batch_size = 500
 
-    train_size = 1 * 10 ** 6
-    train_ratio = 0.7
-    test_size = 1 * 10 ** 6
+    train_size = 1 * 10 ** 5
+    train_ratio = 0.5
+    test_size = 1 * 10 ** 5
 
     # Load test data
     train_val_data = mixdata["X"][:train_size]
     train_val_labels = mixdata["pwave"][:train_size]
-
+	
     (trainset, trainlabels), (valset, val_labels) = split_trainset(train_val_data, train_val_labels, train_ratio)
 
     trainset = list(zip(trainset, trainlabels))
@@ -152,6 +161,8 @@ def run(epochs, lr):
 
     train_losses = []
     val_losses = []
+    
+    min_val_loss = float("inf")
 
     for epoch in range(epochs):
         model.train()
@@ -193,14 +204,17 @@ def run(epochs, lr):
         t_loss_avg = train_loss / len(trainloader)
         v_loss_avg = val_loss / len(val_loader)
         
+        if v_loss_avg < min_val_loss:
+            torch.save(model.state_dict(), "./artifacts/model.pth")
+            mlflow.log_artifact("./artifacts/model.pth")
+        
         mlflow.log_metric("train_loss", t_loss_avg)
         mlflow.log_metric("val_loss", v_loss_avg)
         
         train_losses.append(t_loss_avg)
         val_losses.append(v_loss_avg)
         
-        print('Epoch [{:5d}/{:5d}] | train loss: {:6.4f} | validation loss: {:6.4f}'.format(
-                epoch+1, epochs, t_loss_avg, v_loss_avg))
+
 
     test_path = "../test/scsn_p_2000_2017_6sec_0.5r_pick_test_mix.hdf5"
 
