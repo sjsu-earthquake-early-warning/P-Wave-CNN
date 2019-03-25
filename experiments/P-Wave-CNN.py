@@ -148,6 +148,8 @@ def run(epochs, lr):
     model = CNN()
 
     model = parallelize(model)
+    
+    model.to(device)
 
     #lr = float(args.lr)
 
