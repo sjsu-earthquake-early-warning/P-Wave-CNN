@@ -214,7 +214,7 @@ def run(epochs, lr):
         train_losses.append(t_loss_avg)
         val_losses.append(v_loss_avg)
         
-
+    model.load_state_dict(torch.load("./artifacts/model.pth"))
 
     test_path = "../test/scsn_p_2000_2017_6sec_0.5r_pick_test_mix.hdf5"
 
