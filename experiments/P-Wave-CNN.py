@@ -117,6 +117,10 @@ def run(epochs, lr):
     """
     Train and test CNN with given parameters
     """    
+    
+    # ==============
+    #  Load Data 
+    # ==============
 
     mixdata = h5py.File("../train/scsn_p_2000_2017_6sec_0.5r_pick_train_mix.hdf5", "r")
     testdata = h5py.File("../test/scsn_p_2000_2017_6sec_0.5r_pick_test_mix.hdf5", "r")
@@ -127,7 +131,6 @@ def run(epochs, lr):
     train_ratio = 0.5
     test_size = 1 * 10 ** 5
 
-    # Load test data
     train_val_data = mixdata["X"][:train_size]
     train_val_labels = mixdata["pwave"][:train_size]
 	
@@ -140,6 +143,10 @@ def run(epochs, lr):
     trainloader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(valset, batch_size=batch_size, shuffle=True)
 
+    # ======================
+    #  Use GPU, if available 
+    # ======================
+    
     if torch.cuda.is_available():
         device = "cuda"
     else:
@@ -152,6 +159,10 @@ def run(epochs, lr):
     model.to(device)
 
     #lr = float(args.lr)
+    
+    # ===================================
+    #  Define Optimizer and Loss Function 
+    # ===================================
 
     criterion = nn.NLLLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -215,6 +226,12 @@ def run(epochs, lr):
         
         train_losses.append(t_loss_avg)
         val_losses.append(v_loss_avg)
+        
+        print('Epoch [{:5d}/{:5d}] | train loss: {:6.4f} | validation loss: {:6.4f}'.format(epoch+1, epochs, t_loss_avg, v_loss_avg))
+        
+    # ==============
+    #  Test model 
+    # ==============
         
     model.load_state_dict(torch.load("./artifacts/model.pth"))
 
