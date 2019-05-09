@@ -10,6 +10,6 @@ Jupyter notebook that trains a CNN with Pytorch for classifying seismic waves as
     * Scikit-learn
     * numpy
 
-# Running CNN
+# Training and Testing CNN
 To run CNN, download dataset from http://scedc.caltech.edu/research-tools/deeplearning.html. Model was trained on scsn_p_2000_2017_6sec_0.5r_pick_train.hdf5 and tested on scsn_p_2000_2017_6sec_0.5r_pick_test.hdf5. 
 
