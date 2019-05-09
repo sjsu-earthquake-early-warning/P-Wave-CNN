@@ -5,7 +5,7 @@ Jupyter notebook that trains a CNN with Pytorch for classifying seismic waves as
 
 * Download and install Miniconda package manager
 * Install additional required packages such as 
-Pytorch
+    * Pytorch
     * MLFlow
     * Scikit-learn
     * numpy
